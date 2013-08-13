@@ -1,46 +1,53 @@
+#!/usr/bin/env python
+#
+# Copyright 2013 Shubhro Saha
+#
+# Licensed under Creative Commons Attribution 3.0 Unported. You may obtain
+# a copy of the license at
+#
+#     http://creativecommons.org/licenses/by/3.0/deed.en_US
+#
+# No attribution to the original author is required.
+#
+
+"""Python library for syncing local filesystem changes with a remote filesystem
+
+LiveTwin is a cross-platform "hacker's dropbox". 
+It is a small python script that monitors the local 
+filesystem for changes and syncs contents with a 
+remote folder via rsync.
+
+Usage: python livetwin.py [local dir] [remote dir] [server] [user]
+
 """
-	This script monitors a local directory and copies files to a remote directory when there are changes
-	NOTE: Doesn't work with VIM because it apparently doesn't change the last modified timestamp
 
-	Example usage: python livetwin.py temp/ temp/ nobel.princeton.edu saha
+import os, sys
+import time, datetime
+import logging, getpass, pexpect
 
-	if the local folder is temp/ in the same directory as livetwin.py
-	and the remote folder is temp/ in the home directory of nobel.princeton.edu
-"""
-
-import os, sys, datetime, time, getpass, pexpect
-
-import logging
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
 
-
-#TODO: turn this into proper argument reading soon!
-LOCAL_DIR = sys.argv[1]
-REMOTE_DIR = sys.argv[2]
-REMOTE_SERVER = sys.argv[3]
-REMOTE_SERVER_USER = sys.argv[4]
-REMOTE_SERVER_PASSWORD = getpass.getpass("Remote Server Password: ")
-
-print "Monitoring %s for changes and syncing with %s@%s:%s" % (LOCAL_DIR, REMOTE_SERVER_USER, REMOTE_SERVER, REMOTE_DIR)
-
-print "First sync will take longer than the rest..."
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 class ChangeHandler(LoggingEventHandler):
+    """
+        Adapts watchdog's LoggingEventHandler for LiveTwin's purpose
+    """
 
     stale = True
-        
+
     def sync(self):
         try:
-            print "%s: Syncing..." % datetime.datetime.now()
+            logging.info("Syncing...")
             child = pexpect.spawn("rsync -avz --delete %s %s@%s:%s" % (LOCAL_DIR, REMOTE_SERVER_USER, REMOTE_SERVER, REMOTE_DIR))
             child.expect(".*password:.*")
             child.sendline(REMOTE_SERVER_PASSWORD)
             child.expect(".*sent.*")
 
-            print "%s: Sync complete" % datetime.datetime.now()
+            logging.info("Sync complete")
         except:
-            print "%s: Sync failed" % datetime.datetime.now()
+            logging.info("Sync failed")
 
     def on_moved(self, event):
         self.stale = True
@@ -55,20 +62,35 @@ class ChangeHandler(LoggingEventHandler):
         if ".DS_Store" not in event.src_path:
             self.stale = True
 
-logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-event_handler = ChangeHandler()
-observer = Observer()
-observer.schedule(event_handler, path=sys.argv[1], recursive=True)
-observer.start()
-try:
-    while True:
-        time.sleep(1)
-        if event_handler.stale:
-            event_handler.sync()
-            event_handler.stale = False
 
-except KeyboardInterrupt:
-    observer.stop()
-observer.join()
+if __name__ == "__main__":
+    doc_string = ("Usage: python livetwin.py [local dir] [remote dir] [server] [user]").format(sys.argv[0])
+    if len(sys.argv) < 5:
+        print(doc_string)
+        exit()
+
+    # read arguments
+    LOCAL_DIR = sys.argv[1]
+    REMOTE_DIR = sys.argv[2]
+    REMOTE_SERVER = sys.argv[3]
+    REMOTE_SERVER_USER = sys.argv[4]
+    REMOTE_SERVER_PASSWORD = getpass.getpass("Remote Server Password: ")
+
+    # give feedback
+    logging.info("Monitoring %s for changes and syncing with %s@%s:%s" % (LOCAL_DIR, REMOTE_SERVER_USER, REMOTE_SERVER, REMOTE_DIR))
+    logging.info("First sync may take longer than usual...")
+
+    # start observing and syncing
+    event_handler = ChangeHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=LOCAL_DIR, recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+            if event_handler.stale:
+                event_handler.sync()
+                event_handler.stale = False
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()

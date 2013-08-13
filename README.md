@@ -17,7 +17,7 @@ Run LiveTwin from Terminal:
 
 	python livetwin.py [local dir] [remote dir] [server] [user]
 
-LiveTwin will then ask you for your password. Change the directory contents to watch instant sync!
+LiveTwin will then ask you for your password. Change the local directory contents to watch files instantly sync!
 
 Coming Soon
 ------------
