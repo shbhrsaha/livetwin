@@ -21,6 +21,6 @@ LiveTwin will then ask you for your password. Change the local directory content
 
 Coming Soon
 ------------
-- PyPi installation
+- PyPI installation
 - Alias shortcut
 

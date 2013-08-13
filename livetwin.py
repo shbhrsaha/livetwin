@@ -76,8 +76,12 @@ if __name__ == "__main__":
     REMOTE_SERVER_USER = sys.argv[4]
     REMOTE_SERVER_PASSWORD = getpass.getpass("Remote Server Password: ")
 
+    print "=========="
+    print " LIVETWIN "
+    print "=========="
+
     # give feedback
-    logging.info("Monitoring %s for changes and syncing with %s@%s:%s" % (LOCAL_DIR, REMOTE_SERVER_USER, REMOTE_SERVER, REMOTE_DIR))
+    logging.info("Syncing %s with %s@%s:%s" % (LOCAL_DIR, REMOTE_SERVER_USER, REMOTE_SERVER, REMOTE_DIR))
     logging.info("First sync may take longer than usual...")
 
     # start observing and syncing
