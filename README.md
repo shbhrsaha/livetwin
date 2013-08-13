@@ -7,7 +7,7 @@ Installation
 ------------
 First, install dependencies:
 
-	sudo pip install watchdog pexpect
+	sudo pip install -r requirements.txt
 
 Then, download livetwin.py
 
