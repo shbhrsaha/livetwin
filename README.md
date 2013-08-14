@@ -5,11 +5,10 @@ LiveTwin is a cross-platform "hacker's dropbox". It is a small python script tha
 
 Installation
 ------------
-First, install dependencies:
+Install dependencies:
 
 	sudo pip install -r requirements.txt
 
-Then, download livetwin.py
 
 Usage
 -----
